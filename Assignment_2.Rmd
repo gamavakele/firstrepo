@@ -1,0 +1,99 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+1	Load the dataset stored in the object ylperu.dat (on Vula).  Filter cases, and select variables, as you need (but note you are focusing on outcomes at round 2). In order to make the stunting variable perhaps slightly more useful, you should code children into the following ordered categories (stunted in both rounds, stunted in round 1 only, not stunted in either round).  You should re-compute stunting yourself from the zhfa variable for each round.  Note that there is a wealth index available to you at both rounds 1 and 2.  Decide what you will do with this variable to make it a predictor of outcomes at round 2.
+
+
+```{r}
+install.packages("magrittr")
+install.packages("tidyverse")
+library(tidyverse)
+install.packages("haven")
+install.packages("dplr")
+library(dplyr)
+install.packages ("readxl")
+
+```
+# The key relation we are interested in is that between stunting and early cognitive outcome i.e. at round 2 (note that there are two cognitive outcomes at Round 2 -  language (ppvtraw), and quantitative (cda_raw)).  However, we need to control for differences in wealth and age between the children, too.  Does stunting have an effect on language and quantitative abilities over and above differences in wealth and age?   This is the first part of the assignment.
+In the second (optional) part of the assignment we want to explore some additional variables using exploratory data analysis techniques.  There are many possibilities, but ones that are possibly important are sex of child, residential status (country or urban), child’s language, and mother’s and father’s education level.  
+```{r}
+library(tidyverse)
+```
+
+Question 1: 1	Load the dataset stored in the object ylperu.dat (on Vula).  Filter cases, and select variables, as you need (but note you are focusing on outcomes at round 2).  In order to make the stunting variable perhaps slightly more useful, you should code children into the following ordered categories (stunted in both rounds, stunted in round 1 only, not stunted in either round).  You should re-compute stunting yourself from the zhfa variable for each round.  Note that there is a wealth index available to you at both rounds 1 and 2.  Decide what you will do with this variable to make it a predictor of outcomes at round 2.
+```{r}
+load("ylperu.dat") 
+peru2 <- peru.dat %>% 
+          select(childid, stunted, round) %>% 
+          filter(round == 1 | round == 2) %>% 
+          spread(key = round, value = stunted, sep = "stunt_") %>% 
+          mutate(stunt_r12 = roundstunt_1+roundstunt_2) %>% 
+         
+```
+# Note that there is a wealth index available to you at both rounds 1 and 2.  Decide what you will do with this variable to make it a predictor of outcomes at round 2.
+
+make_z = function(a_vec) {
+  z <- (a_vec - mean(a_vec, na.rm = T))/sd(a_vec, na.rm = T)
+}
+
+# need to make the variable wi into a z score
+
+
+```{r}
+Peru3 <- peru.dat %>% 
+         select(childid, stunted, wi, round) %>% 
+         filter(round == 1 | round == 2)
+
+
+
+make_z = function(Peru3) {
+  z <- (Peru3 - mean(Peru3, na.rm = T))/sd(Peru3, na.rm = T)
+}
+
+wi_z <- peru.dat %>% 
+        select(wi)
+
+make_z <- function (avec)wi_z
+
+library(tidyverse)
+
+
+```
+```{r}
+install.packages("pacman")
+```
+# 2	Create training and test data sets for analysis, on the basis of a 75/25 % split i.e. randomly select 75% of the cases for the training set, and put the remainder in the test set.   
+```{r}
+
+ind <- sample(2,nrow(peru2),replace=TRUE, split=0.75, 0.25)
+        tdata <- peru2[ind==1]
+        trdata <- peru2[ind==2]
+
+```
+# Build a multiple regression model that attempts to answer the question posed above for each outcome (i.e. the key question for Part 1 of the assignment).
+
+The key relation we are interested in is that between stunting and early cognitive outcome i.e. at round 2 (note that there are two cognitive outcomes at Round 2 -  language (ppvtraw), and quantitative (cda_raw)).  However, we need to control for differences in wealth and age between the children, too.  Does stunting have an effect on language and quantitative abilities over and above differences in wealth and age?   This is the first part of the assignment.
+```{r}
+cogdev <- peru.dat %>% 
+          filter(round == 2) %>% 
+          select(childid, ppvtraw, cda_raw)
+
+```
+
+```{r}
+model_response <- lm(cogdev ~ peru2, Peru3, wi_z, age)
+
+```
+
+#  Decide whether the regression model is stable, and interpret it.  You will probably find it useful to compute some summary statistics, and a graph or two in order to do so.
+```{r}
+install.packages("psych")
+library(psych)
+```
+```{r}
+model_response <- lm(cogdev ~ peru2, Peru3, wi_z, age)
+    summary(model_response)
+```
+
